@@ -1,15 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useRef, useState } from 'react'
 import Button from '../Utilities/Button';
+import profilePic from '../Assets/default_profile.png'
+
 const Signup = () => {
     const imageInputRef = useRef(null);
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState(profilePic/* "https://www.pngitem.com/pimgs/m/228-2289292_share-friends-circle-hd-png-download.png" */);
+    const [changedImage, setChangedImage] = useState(false);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [match, setMatch] = useState(false);
     const relocate = useNavigate();
     const handleFileChange = (event) => {
+        setChangedImage(true);
         const file = event.target.files[0]; 
         if (file) {
             const reader = new FileReader(); 
@@ -60,14 +64,14 @@ const Signup = () => {
     };
 
     const submit = async () => {
-        console.log({ username, email, password, profilePicture: image });
+        const profilePicture = changedImage ? image : null;
         try {
             const response = await fetch("http://localhost:3001/signup", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ username, email, password }),
+                body: JSON.stringify({ username, email, password, profilePicture }),
             });
             const res = await response.json();
             if (response.status === 201) {
@@ -89,19 +93,19 @@ const Signup = () => {
                     <h1 className='text-4xl'>Sign Up</h1>
                     <div>
                         <div className='text-xl text-semibold'>Name</div>
-                        <input className='p-1 rounded-md outline-0' type="text" placeholder='Name' onChange={(e) => setUsername(e.target.value)} />
+                        <input required className='p-1 rounded-md outline-0' type="text" placeholder='Name' onChange={(e) => setUsername(e.target.value)} />
                     </div>
                     <div>
                         <div className='text-xl text-semibold'>Email</div>
-                        <input className='p-1 rounded-md outline-0' type="email" placeholder='Email' onChange={(e) => setEmail(e.target.value)} />
+                        <input required className='p-1 rounded-md outline-0' type="email" placeholder='Email' onChange={(e) => setEmail(e.target.value)} />
                     </div>
                     <div>
                         <div className='text-xl text-semibold'>Password</div>
-                        <input className='p-1 rounded-md outline-0' type="password" placeholder='Password' onChange={(e) => setPassword(e.target.value)} />
+                        <input required className='p-1 rounded-md outline-0' type="password" placeholder='Password' onChange={(e) => setPassword(e.target.value)} />
                     </div>
                     <div>
                         <div className='text-xl text-semibold'>Confirm Password</div>
-                        <input className='p-1 rounded-md outline-0' type="password" placeholder='Password' onChange={(e) => {
+                        <input required className='p-1 rounded-md outline-0' type="password" placeholder='Password' onChange={(e) => {
                             let pass = e.target.value;
                             if (pass === password)
                                 setMatch(true);
@@ -133,8 +137,18 @@ const Signup = () => {
                     data={"Upload Profile Picture"}
                 />
                 <div className='h-32 w-32 bg-slate-300 rounded-full overflow-hidden'>
-                    {image ? <img alt="profile" src={image} className="object-scale-down w-full h-full" /> : <div className=' w-full h-full bg-white'></div>}
+                    <img alt="profile" src={image} className="object-scale-down w-full h-full" />
                 </div>
+                <Button 
+                    type={"button"} 
+                    newStyle="cursor-pointer bg-red-500 text-white font-md py-2 px-4 rounded-md hover:bg-gray-600 h-content"
+                    click={() => {
+                        imageInputRef.current.value = '';
+                        setImage(profilePic);
+                        setChangedImage(false);
+                    }} 
+                    data="Clear"
+                />
             </div>
         </div>
     )
