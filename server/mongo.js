@@ -12,7 +12,22 @@ const userSchema = mongoose.Schema({
     hasImage: {type: Boolean},
     profilePicture: {type: Object}
 });
-
 const User = new mongoose.model("User", userSchema, "Users");
 
-module.exports = { mongoose, User} ;
+const postSchema = mongoose.Schema({
+    title: {type: String},
+    decription: {type: String},
+    postTags: {type: Array},
+    likes: {type: Number},
+    allowComments: {type: Boolean},
+    postImage: {type: Object},
+    comments: {type: Array},
+})
+const Post = new mongoose.model("Post", postSchema, "Posts");
+
+const commentSchema = mongoose.Schema({
+    name: {type: String},
+    comment: {type: String}
+})
+
+module.exports = { mongoose, User, Post, commentSchema } ;

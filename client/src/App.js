@@ -6,7 +6,7 @@ import Layout from './Home/Layout'
 
 const App = () => {
   return (
-    <div className="h-screen w-screen flex flex-col justify-center items-center bg-zinc-700 font-mono">
+    <div className="h-screen w-screen justify-center items-center overflow-hidden flex flex-col bg-zinc-700 font-mono">
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Login />} />

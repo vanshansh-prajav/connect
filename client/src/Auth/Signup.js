@@ -14,23 +14,23 @@ const Signup = () => {
     const relocate = useNavigate();
     const handleFileChange = (event) => {
         setChangedImage(true);
-        const file = event.target.files[0]; 
+        const file = event.target.files[0];
         if (file) {
-            const reader = new FileReader(); 
+            const reader = new FileReader();
 
             reader.onload = () => {
                 const img = new Image();
-                img.src = reader.result; 
+                img.src = reader.result;
 
                 img.onload = () => {
-                    
+
                     const canvas = document.createElement("canvas");
-                    const MAX_WIDTH = 200; 
-                    const MAX_HEIGHT = 200; 
+                    const MAX_WIDTH = 200;
+                    const MAX_HEIGHT = 200;
                     let width = img.width;
                     let height = img.height;
 
-                    
+
                     if (width > height) {
                         if (width > MAX_WIDTH) {
                             height *= MAX_WIDTH / width;
@@ -43,23 +43,23 @@ const Signup = () => {
                         }
                     }
 
-                    
+
                     canvas.width = width;
                     canvas.height = height;
 
-                    
+
                     const ctx = canvas.getContext("2d");
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    
-                    const base64String = canvas.toDataURL("image/jpeg", 0.7); 
-                    setImage(base64String); 
+
+                    const base64String = canvas.toDataURL("image/jpeg", 0.7);
+                    setImage(base64String);
                 };
             };
 
-            reader.readAsDataURL(file); 
+            reader.readAsDataURL(file);
         } else {
-            alert('No file selected'); 
+            alert('No file selected');
         }
     };
 
@@ -78,7 +78,7 @@ const Signup = () => {
                 relocate("/");
             }
             else {
-                alert(res);
+                throw new Error(res);
             }
         }
         catch (e) {
@@ -110,9 +110,13 @@ const Signup = () => {
                             if (pass === password)
                                 setMatch(true);
                             else setMatch(false);
-                        }} />
-                        {match && password !== "" && <div className='text-green-500'>✔️matches</div>}
-                        {!match && password !== "" && <div className='text-red-500'>❌does not match</div>}
+                        }}
+                            disabled={!password}
+                        />
+                        <div className='h-4'>
+                            {match && password !== "" && <div className='text-green-500'>✔️matches</div>}
+                            {!match && password !== "" && <div className='text-red-500'>❌does not match</div>}
+                        </div>
                     </div>
 
                     <div>
@@ -139,14 +143,14 @@ const Signup = () => {
                 <div className='h-32 w-32 bg-slate-300 rounded-full overflow-hidden'>
                     <img alt="profile" src={image} className="object-scale-down w-full h-full" />
                 </div>
-                <Button 
-                    type={"button"} 
+                <Button
+                    type={"button"}
                     newStyle="cursor-pointer bg-red-500 text-white font-md py-2 px-4 rounded-md hover:bg-gray-600 h-content"
                     click={() => {
                         imageInputRef.current.value = '';
                         setImage(profilePic);
                         setChangedImage(false);
-                    }} 
+                    }}
                     data="Clear"
                 />
             </div>

@@ -20,7 +20,7 @@ const Login = () => {
                 relocate("/home", { state: res.user });
             }
             else {
-                alert(res);
+                throw new Error(res);
             }
         }
         catch (e) {

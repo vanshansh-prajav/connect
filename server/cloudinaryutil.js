@@ -13,11 +13,12 @@ const options = {
     resource_type: "auto"
 }
 
-const uploadImage = async ({ userid, image }) => {
+const uploadImage = async ({ folderid, image }) => {
     try {
         const result = await cloudinary.uploader.upload(image,
             {
-                folder: userid, overwrite: true,
+                folder: folderid, 
+                overwrite: true,
                 invalidate: true,
                 resource_type: "auto"
             });
