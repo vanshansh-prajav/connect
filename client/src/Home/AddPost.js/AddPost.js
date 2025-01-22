@@ -1,10 +1,13 @@
-import React, { useRef, useState } from 'react'
+import React, { useContext, useRef, useState } from 'react'
 import DetailInput from '../../Utilities/DetailInput';
 import Tag from './Tag';
 import Button from '../../Utilities/Button'
 import BinaryInput from '../../Utilities/BinaryInput';
+import { userContext } from '../Layout'
+
 
 const AddPost = () => {
+    const [user] = useState(useContext(userContext));
     const fileUpload = useRef(null);
     const [uploadedImage, setUploadedImage] = useState();
     const [postTitle, setPostTitle] = useState("");
@@ -12,7 +15,6 @@ const AddPost = () => {
     const [postTag, setPostTag] = useState("");
     const [allowComments, setAllowComments] = useState(true);
     const [postTags, setPostTags] = useState([]);
-
     const addTag = () => {
         if (postTags.indexOf(postTag) !== -1)
             return;
@@ -77,15 +79,13 @@ const AddPost = () => {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ postTitle, postDescription, postTags, allowComments, uploadedImage })
+                body: JSON.stringify({ userId: user._id, postTitle, postDescription, postTags, allowComments, uploadedImage })
             });
             const res = await response.json();
-            if(response.status === 201)
-            {
+            if (response.status === 201) {
                 alert(res);
             }
-            else
-            {
+            else {
                 throw new Error(res);
             }
         } catch (error) {
@@ -113,7 +113,7 @@ const AddPost = () => {
                 <Button type={"button"} click={addTag} data={"Add Tag"} newStyle={"p-2 pl-4 pr-4 rounded-md text-white bg-sky-400 hover:bg-sky-600"} />
                 <ul className='flex flex-wrap w-full gap-2'>
                     {postTags.map((tag, index) => {
-                        return(
+                        return (
                             <li key={index}>
                                 <Tag tag={tag} index={index} removeTag={removeTag} />
                             </li>

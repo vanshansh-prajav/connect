@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { mongoose, User, Post, commentSchema } = require('./mongo');
+const { mongoose, User, Post } = require('./mongo');
 const { uploadImage } = require('./cloudinaryutil');
 const app = express();
 app.use(cors());
@@ -20,7 +20,7 @@ app.post("/login", async (req, res) => {
         if (user != null) {
             if (user.password === password) {
                 let { password, profilePicture, ...filteredFields } = user;
-                res.status(201).json({ user: { ...filteredFields, profilePictureURL: user.hasImage ? profilePicture.secure_url : null } });
+                res.status(201).json({ user: { ...filteredFields, profilePictureURL: user.hasImage ? profilePicture : null } });
             }
             else {
                 throw new Error("Password Does not match");
@@ -60,7 +60,7 @@ app.post("/signup", async (req, res) => {
             })
             await user.save();
             if (profilePicture) {
-                imageData = await uploadImage({ folderid: user._id.toString(), image: profilePicture });
+                imageData = await uploadImage({ folderid: user._id.toString(), image: profilePicture, type: 'profilePicture' });
                 await User.findByIdAndUpdate(
                     user._id,
                     { $set: { profilePicture: imageData } },
@@ -75,11 +75,12 @@ app.post("/signup", async (req, res) => {
 })
 
 app.post('/publishpost', async (req, res) => {
-    const { postTitle, postDescription, postTags, allowComments, uploadedImage } = req.body;
+    const { userId, postTitle, postDescription, postTags, allowComments, uploadedImage } = req.body;
+    console.log(userId);
     try {
         const post = new Post({
             title: postTitle,
-            decription: postDescription,
+            description: postDescription,
             postTags: postTags,
             likes: 0,
             allowComments: allowComments,
@@ -87,7 +88,7 @@ app.post('/publishpost', async (req, res) => {
             comments: []
         });
         post.save();
-        let imageData = await uploadImage({ folderid: post._id.toString(), image: uploadedImage });
+        let imageData = await uploadImage({ folderid: userId.toString(), image: uploadedImage, type: 'posts' });
         await Post.findByIdAndUpdate(
             post._id,
             { $set: { postImage: imageData } },
@@ -101,7 +102,7 @@ app.post('/publishpost', async (req, res) => {
 
 app.get('/getposts', async (req, res) => {
     try {
-        const posts = await Post.find({}).select("_id postImage.secure_url");
+        const posts = await Post.find({}).select("_id postImage");
         res.status(201).json(JSON.stringify(posts));
     } catch (error) {
         res.status(400).json(error.message);
@@ -110,11 +111,35 @@ app.get('/getposts', async (req, res) => {
 
 app.post('/getpost', async (req, res) => {
     try {
-        const {id} = req.body;
+        const { id } = req.body;
         const post = await Post.findById(id);
         res.status(201).json(JSON.stringify(post));
     } catch (error) {
         res.status(400).json(error.message);
+    }
+})
+
+app.post("/postcomment", async (req, res) => {
+    const { id, comment, userId } = req.body;
+    try{
+        const comments = (await Post.findById(id).select("comments")).comments;
+        const {username, profilePicture} = await User.findById(userId).select("username profilePicture")
+        const formatted = {
+            username: username,
+            profilePicture: profilePicture,
+            comment: comment
+        }
+        comments.push(formatted);
+
+        await Post.findByIdAndUpdate(
+            id,
+            { $set: { comments: comments } },
+            { new: true }
+        )
+        res.status(201).json(JSON.stringify(comments));
+    } catch(error) {
+        console.log(error);
+        res.status(400).json("Commnet failed to be added");
     }
 })
 
