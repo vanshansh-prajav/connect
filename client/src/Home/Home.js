@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Routes, Route, Link } from 'react-router-dom';
 import ImageCard from '../Utilities/ImageCard';
-import ImagePage from '../Utilities/ImagePage';
+import ImagePage from './Post/ImagePage';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -30,10 +30,10 @@ const Home = () => {
   return (
     <Routes>
       <Route path={'/'} element={<div className='h-full max-h-full overflow-y-scroll p-2 border-2 border-blue-500'>
-        <ul>
+        <ul className='flex gap-4'>
           {posts.map((post, index) => {
             return (
-              <li key={index}>
+              <li key={index} >
                 <Link to={`/home/${post._id}`}>
                   <ImageCard post={post} />
                 </Link>
