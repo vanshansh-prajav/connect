@@ -4,13 +4,20 @@ import Navbar from './Navbar/Navbar';
 import Home from './Home'
 import Message from './Chat/Message';
 import Settings from './Settings';
-import AddPost from './AddPost.js/AddPost';
+import AddPost from './AddPost/AddPost';
 
 export const userContext = createContext();
 
 const Layout = () => {
-  const location = useLocation();
-  const [user] = useState(location?.state);
+  const [location] = useState(useLocation());
+  const [user] = useState(location.state.user);
+  const [keepLogin] = useState(location.state.keepLogin);
+  if (keepLogin) {
+    localStorage.setItem('userData', JSON.stringify(user));
+  }
+  else {
+    localStorage.removeItem('userData');
+  }
   return (
     <userContext.Provider value={user}>
       <div className='flex h-full w-full max-h-full'>

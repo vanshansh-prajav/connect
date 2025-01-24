@@ -15,6 +15,7 @@ const userSchema = mongoose.Schema({
 const User = new mongoose.model("User", userSchema, "Users");
 
 const postSchema = mongoose.Schema({
+    userId: {type: String},
     title: {type: String},
     description: {type: String},
     postTags: {type: Array},

@@ -1,7 +1,7 @@
 import React from 'react'
 import Comment from './Comment'
 
-const CommentSection = ({ id, comments }) => {
+const CommentSection = ({ comments }) => {
     return (
         <div className='max-h-full bg-gray-200 overflow-y-scroll'>
             <ul>

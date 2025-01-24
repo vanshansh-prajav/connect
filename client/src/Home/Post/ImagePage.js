@@ -37,6 +37,7 @@ const ImagePage = () => {
   }, [id])
 
   const postComment = async () => {
+    if(!comment) return;
     try {
       const response = await fetch("http://localhost:3001/postcomment", {
         method: "POST",
@@ -46,8 +47,10 @@ const ImagePage = () => {
         body: JSON.stringify({ id, comment, userId: user._id })
       })
       const res = JSON.parse(await response.json());
-      if (response.status === 201)
+      if (response.status === 201) {
         setComments(res);
+        setComment("");
+      }
       else
         throw new Error(res);
     } catch (error) {
@@ -77,13 +80,12 @@ const ImagePage = () => {
                 </div>
               </div>
               {currentPost.allowComments && <div className='flex flex-col max-h-60'>
-                <CommentSection id={currentPost._id} comments={comments} />
+                <CommentSection comments={comments} />
                 <div className='flex w-full'>
                   <input placeholder='Views...' type='text' onChange={(e) => setComment(e.target.value)} value={comment} className='w-full' />
                   <button type={"button"} onClick={postComment} className='pl-2 pr-2 p-1 rounded-br-md bg-red-500'>add</button>
                 </div>
               </div>}
-
             </div>
           </div>
         </div>

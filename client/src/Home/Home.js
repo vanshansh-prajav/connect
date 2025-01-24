@@ -29,19 +29,21 @@ const Home = () => {
 
   return (
     <Routes>
-      <Route path={'/'} element={<div className='h-full max-h-full overflow-y-scroll p-2 border-2 border-blue-500'>
-        <ul className='flex gap-4'>
-          {posts.map((post, index) => {
-            return (
-              <li key={index} >
-                <Link to={`/home/${post._id}`}>
-                  <ImageCard post={post} />
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </div>} />
+      <Route path={'/'} element={
+        posts.length > 0 ? <div className='h-full max-h-full overflow-y-scroll p-2 border-2 border-blue-500'>
+          <ul className='flex gap-4'>
+            {posts.map((post, index) => {
+              return (
+                <li key={index} >
+                  <Link to={`/home/${post._id}`}>
+                    <ImageCard post={post} />
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div> : "..loading"
+      } />
       <Route path={'/:id'} element={<ImagePage />} />
     </Routes>
   )

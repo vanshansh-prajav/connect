@@ -79,6 +79,7 @@ app.post('/publishpost', async (req, res) => {
     console.log(userId);
     try {
         const post = new Post({
+            userId: userId,
             title: postTitle,
             description: postDescription,
             postTags: postTags,
