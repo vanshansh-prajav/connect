@@ -26,4 +26,11 @@ const postSchema = mongoose.Schema({
 })
 const Post = new mongoose.model("Post", postSchema, "Posts");
 
-module.exports = { mongoose, User, Post } ;
+const secretSchema = mongoose.Schema({
+    email: {type: String},
+    twoFactorSecret: {type: Object}
+})
+
+const Secret = new mongoose.model("Secret", secretSchema, "Secrets");
+
+module.exports = { mongoose, User, Post, Secret } ;

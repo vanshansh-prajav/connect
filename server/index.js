@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { mongoose, User, Post } = require('./mongo');
+const speakeasy = require('speakeasy')
+const nodemailer = require('nodemailer')
+const { mongoose, User, Post, Secret } = require('./mongo');
 const { uploadImage } = require('./cloudinaryutil');
 const app = express();
 app.use(cors());
@@ -40,6 +42,78 @@ const findUser = async ({ email }) => {
         return false;
     return user.toObject();
 }
+
+const generateOTP = ({ secret, encoding }) => {
+    const otp = speakeasy.totp({
+        secret: secret,
+        encoding: 'base32'
+    });
+    return otp;
+}
+
+const sendEmailOTP = async ({ email, otp }) => {
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',  // Adjust this according to your email service
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: process.env.MAIL_CRED_EMAIL,
+            pass: process.env.MAIL_CRED_PASS
+        }
+    });
+
+    await transporter.sendMail({
+        from: `"OTP Service" ${process.env.MAIL_CRED_EMAIL}`,
+        to: email,
+        subject: 'Your OTP Code',
+        text: `Your OTP code is: ${otp}`
+    });
+}
+
+
+app.post("/initiateverification", async (req, res) => {
+    try {
+        const { email } = req.body;
+        const twofa = speakeasy.generateSecret();
+        const secret = new Secret({
+            email: email,
+            twoFactorSecret: twofa
+        })
+        secret.save();
+        const otp = generateOTP({ secret: secret.twoFactorSecret.base32, encoding: "base32" });
+        await sendEmailOTP({ email, otp });
+        res.status(201).json("OTP sent");
+    } catch (error) {
+        res.status(400).json(error.message);
+    }
+})
+
+const verifyOTP = ({ secret, otp }) => {
+    const verified = speakeasy.totp.verify({
+        secret: secret,  // Use a secure key in production
+        encoding: 'base32',
+        token: otp,
+        window: 2
+    });
+    return verified;
+}
+
+app.post("/verify", async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const secret = (await Secret.findOne({ email }).select("twoFactorSecret.base32")).twoFactorSecret.base32;
+        const verified = verifyOTP({ secret, otp });
+        if (verified) {
+            res.status(201).json("Verified");
+        }
+        else {
+            throw new Error("OTP did not match");
+        }
+    } catch (error) {
+        res.status(400).json(error.message);
+    }
+})
 
 app.post("/signup", async (req, res) => {
     try {
@@ -122,9 +196,9 @@ app.post('/getpost', async (req, res) => {
 
 app.post("/postcomment", async (req, res) => {
     const { id, comment, userId } = req.body;
-    try{
+    try {
         const comments = (await Post.findById(id).select("comments")).comments;
-        const {username, profilePicture} = await User.findById(userId).select("username profilePicture")
+        const { username, profilePicture } = await User.findById(userId).select("username profilePicture")
         const formatted = {
             username: username,
             profilePicture: profilePicture,
@@ -138,7 +212,7 @@ app.post("/postcomment", async (req, res) => {
             { new: true }
         )
         res.status(201).json(JSON.stringify(comments));
-    } catch(error) {
+    } catch (error) {
         console.log(error);
         res.status(400).json("Commnet failed to be added");
     }

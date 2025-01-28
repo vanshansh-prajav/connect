@@ -5,13 +5,16 @@ import profilePic from '../Assets/default_profile.png'
 
 const Signup = () => {
     const imageInputRef = useRef(null);
+    const modalRef = useRef(null);
     const [image, setImage] = useState(profilePic/* "https://www.pngitem.com/pimgs/m/228-2289292_share-friends-circle-hd-png-download.png" */);
     const [changedImage, setChangedImage] = useState(false);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [otp, setOtp] = useState();
     const [match, setMatch] = useState(false);
     const relocate = useNavigate();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const handleFileChange = (event) => {
         setChangedImage(true);
         const file = event.target.files[0];
@@ -63,6 +66,54 @@ const Signup = () => {
         }
     };
 
+    const initiateVerification = async () => {
+        try {
+            if (!username) throw new Error("Username not valid");
+            if (!emailRegex.test(email)) throw new Error("Email not valid");
+            if (!password) throw new Error("Password not valid");
+            if (!match) throw new Error("Passwords do not match");
+            const response = await fetch("http://localhost:3001/initiateverification", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+            });
+            const res = await response.json();
+            console.log(res);
+            if (response.status === 201) {
+                modalRef.current.showModal();
+            }
+            else {
+                throw new Error(res);
+            }
+        }
+        catch (e) {
+            alert(`Error: ${e}`);
+        }
+    }
+
+    const verify = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/verify', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, otp })
+            })
+            const res = await response.json();
+            if (response.status === 201) {
+                submit();
+            }
+            else {
+                throw new Error(res);
+            }
+        } catch (error) {
+            alert(`Error: ${error}`);
+        }
+    }
+
     const submit = async () => {
         const profilePicture = changedImage ? image : null;
         try {
@@ -87,7 +138,7 @@ const Signup = () => {
     }
 
     return (
-        <div className='flex gap-4'>
+        <div className={`flex gap-4 justify-center items-center`}>
             <div className='flex flex-col border-2 rounded-md bg-zinc-600 opacity-70 h-fit w-fit p align-center'>
                 <div className='flex flex-col self-center p-4 gap-2 items-center'>
                     <h1 className='text-4xl'>Sign Up</h1>
@@ -120,7 +171,7 @@ const Signup = () => {
                     </div>
 
                     <div>
-                        <Button type="submit" data="Sign Up" click={submit} />
+                        <Button type="submit" data="Sign Up" click={initiateVerification} />
                     </div>
                     <div>
                         <div className='text-blue-300 hover:text-blue-500' ><Link to="/">Already have an account?</Link></div>
@@ -154,6 +205,16 @@ const Signup = () => {
                     data="Clear"
                 />
             </div>
+            <dialog ref={modalRef} className='h-full w-full bg-gray-500/50 backdrop-blur-sm'>
+                <div className='h-full w-full flex justify-center items-center'>
+                    <div className='flex flex-col gap-2 text-white justify-center p-4 bg-gray-300 rounded-lg justify-self-center'>
+                        <button className='self-end text-red-600 text-lg hover:bg-red-600 hover:text-white rounded-full pl-2 pr-2' onClick={() => modalRef.current.close()}>x</button>
+                        <span className='text-xl text-gray-700'>Enter OTP sent to {email}</span>
+                        <input type='number' className='text-black rounded-lg p-2' onChange={(e) => setOtp(e.target.value)} />
+                        <Button type={'button'} click={verify} data={'verify'} />
+                    </div>
+                </div>
+            </dialog>
         </div>
     )
 }
